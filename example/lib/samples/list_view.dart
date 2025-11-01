@@ -31,6 +31,7 @@ class _ListViewScreenState extends State<ListViewScreen> {
       return state.nextIntPageKey;
     },
     fetchPage: (pageKey) => RemoteApi.getPhotos(pageKey, search: _searchTerm),
+    getItemId: (photo) => photo.id.toString(),
   );
 
   @override

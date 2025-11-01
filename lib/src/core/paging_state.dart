@@ -9,6 +9,7 @@ abstract class PagingState<PageKeyType, ItemType> {
   /// Creates a [PagingState] with the given parameters.
   factory PagingState({
     List<List<ItemType>>? pages,
+    List<List<String>>? itemIds,
     List<PageKeyType>? keys,
     Object? error,
     bool hasNextPage,
@@ -20,6 +21,13 @@ abstract class PagingState<PageKeyType, ItemType> {
   /// This contains all pages fetched so far.
   /// The corresponding key for each page is at the same index in [keys].
   List<List<ItemType>>? get pages;
+
+  /// The ids of the items fetched so far.
+  ///
+  /// Each id uniquely identifies an item inside its page. The list structure
+  /// mirrors [pages] so the id for an item at position `[pageIndex][itemIndex]`
+  /// can be found at `itemIds?[pageIndex][itemIndex]`.
+  List<List<String>>? get itemIds;
 
   /// The keys of the pages fetched so far.
   ///
@@ -46,6 +54,7 @@ abstract class PagingState<PageKeyType, ItemType> {
   // copyWith a la Remi Rousselet: https://github.com/dart-lang/language/issues/137#issuecomment-583783054
   PagingState<PageKeyType, ItemType> copyWith({
     Defaulted<List<List<ItemType>>?>? pages = const Omit(),
+    Defaulted<List<List<String>>?>? itemIds = const Omit(),
     Defaulted<List<PageKeyType>?>? keys = const Omit(),
     Defaulted<Object?>? error = const Omit(),
     Defaulted<bool>? hasNextPage = const Omit(),

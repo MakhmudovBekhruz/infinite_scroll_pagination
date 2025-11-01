@@ -24,6 +24,7 @@ void main() {
         () {
       pagingState = PagingState<int, String>(
         pages: const [],
+        itemIds: const [],
         keys: const [],
         hasNextPage: false,
       );
@@ -35,6 +36,9 @@ void main() {
         () {
       pagingState = PagingState<int, String>(
         pages: const [
+          ['Item 1']
+        ],
+        itemIds: const [
           ['Item 1']
         ],
         keys: const [1],
@@ -50,6 +54,9 @@ void main() {
         pages: const [
           ['Item 1']
         ],
+        itemIds: const [
+          ['Item 1']
+        ],
         keys: const [1],
         error: Exception('Error'),
         hasNextPage: true,
@@ -62,6 +69,9 @@ void main() {
         () {
       pagingState = PagingState<int, String>(
         pages: const [
+          ['Item 1']
+        ],
+        itemIds: const [
           ['Item 1']
         ],
         keys: const [1],

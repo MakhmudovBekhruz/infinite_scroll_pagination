@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
@@ -23,6 +24,7 @@ void main() {
       pagingController = PagingController<int, String>(
         getNextPageKey: getNextPageKey,
         fetchPage: fetchPage,
+        getItemId: (item) => item,
       );
     });
 
@@ -32,6 +34,7 @@ void main() {
 
         expect(fetchCalled, isTrue);
         expect(pagingController.value.pages, [fetchedItems]);
+        expect(pagingController.value.itemIds, [fetchedItems]);
         expect(pagingController.value.keys, [nextPageKey]);
       });
 
@@ -42,6 +45,7 @@ void main() {
 
         expect(fetchCalled, isTrue);
         expect(pagingController.value.pages, [fetchedItems]);
+        expect(pagingController.value.itemIds, [fetchedItems]);
         expect(pagingController.value.keys, [nextPageKey]);
       });
 
@@ -51,6 +55,7 @@ void main() {
         pagingController = PagingController<int, String>(
           getNextPageKey: (state) => nextPageKey,
           fetchPage: (_) => completer.future,
+          getItemId: (item) => item,
         );
 
         pagingController.fetchNextPage();
@@ -91,6 +96,7 @@ void main() {
         pagingController = PagingController<int, String>(
           getNextPageKey: (state) => (state.keys?.last ?? 0) + 1,
           fetchPage: (page) => Future.value(['Item $page']),
+          getItemId: (item) => item,
         );
 
         pagingController.fetchNextPage();
@@ -120,6 +126,7 @@ void main() {
         pagingController = PagingController<int, String>(
           getNextPageKey: (state) => nextPageKey,
           fetchPage: (_) => throw Exception(),
+          getItemId: (item) => item,
         );
 
         pagingController.fetchNextPage();
@@ -132,6 +139,7 @@ void main() {
         pagingController = PagingController<int, String>(
           getNextPageKey: (state) => nextPageKey,
           fetchPage: (_) => throw Error(),
+          getItemId: (item) => item,
         );
 
         expect(() async => pagingController.fetchNextPage(),
@@ -139,6 +147,19 @@ void main() {
 
         expect(pagingController.value.isLoading, isFalse);
         expect(pagingController.value.error, isA<Error>());
+      });
+
+      test('throws when duplicate ids are returned', () async {
+        pagingController = PagingController<int, String>(
+          getNextPageKey: (state) => state.keys?.last == null ? 1 : null,
+          fetchPage: (_) => ['Dup', 'Dup'],
+          getItemId: (item) => item,
+        );
+
+        expect(
+          () => pagingController.fetchNextPage(),
+          throwsStateError,
+        );
       });
     });
 
@@ -148,12 +169,16 @@ void main() {
           pages: const [
             ['Item 1']
           ],
+          itemIds: const [
+            ['Item 1']
+          ],
           keys: const [1],
         );
 
         pagingController.refresh();
 
         expect(pagingController.value.pages, isNull);
+        expect(pagingController.value.itemIds, isNull);
         expect(pagingController.value.keys, isNull);
         expect(pagingController.value.isLoading, isFalse);
         expect(pagingController.value.error, isNull);
@@ -175,7 +200,8 @@ void main() {
                 hasBeenCalled = true;
                 return completer1.future;
               }
-            });
+            },
+            getItemId: (item) => item);
 
         final wrongItems = ['Wrong Item 1', 'Wrong Item 2'];
 
@@ -203,6 +229,7 @@ void main() {
 
         expect(pagingController.value.isLoading, isFalse);
         expect(pagingController.value.pages, [fetchedItems]);
+        expect(pagingController.value.itemIds, [fetchedItems]);
         expect(hasFailed, isFalse);
       });
     });
@@ -212,6 +239,7 @@ void main() {
         pagingController = PagingController<int, String>(
           getNextPageKey: (state) => (state.keys?.last ?? 0) + 1,
           fetchPage: (page) => Future.value(['Item $page']),
+          getItemId: (item) => item,
         );
 
         pagingController.fetchNextPage();
@@ -219,6 +247,9 @@ void main() {
         await Future.value(null);
 
         expect(pagingController.value.pages, [
+          ['Item 1']
+        ]);
+        expect(pagingController.value.itemIds, [
           ['Item 1']
         ]);
 
@@ -232,6 +263,83 @@ void main() {
         expect(pagingController.value.pages, [
           ['Item 1']
         ]);
+        expect(pagingController.value.itemIds, [
+          ['Item 1']
+        ]);
+      });
+    });
+
+    group('insertItem', () {
+      test('inserts into empty state', () {
+        pagingController.insertItem(
+          id: 'new-id',
+          item: 'New Item',
+          index: 0,
+        );
+
+        expect(pagingController.value.pages, [
+          ['New Item']
+        ]);
+        expect(pagingController.value.itemIds, [
+          ['new-id']
+        ]);
+      });
+
+      test('inserts at specific position', () {
+        pagingController.value = PagingState<int, String>(
+          pages: const [
+            ['Item 1', 'Item 3']
+          ],
+          itemIds: const [
+            ['id-1', 'id-3']
+          ],
+          keys: const [1],
+        );
+
+        pagingController.insertItem(
+          id: 'id-2',
+          item: 'Item 2',
+          index: 1,
+        );
+
+        expect(pagingController.value.pages, [
+          ['Item 1', 'Item 2', 'Item 3']
+        ]);
+        expect(pagingController.value.itemIds, [
+          ['id-1', 'id-2', 'id-3']
+        ]);
+      });
+
+      test('throws when id already exists', () {
+        pagingController.value = PagingState<int, String>(
+          pages: const [
+            ['Item 1']
+          ],
+          itemIds: const [
+            ['dup']
+          ],
+          keys: const [1],
+        );
+
+        expect(
+          () => pagingController.insertItem(
+            id: 'dup',
+            item: 'Item 2',
+            index: 1,
+          ),
+          throwsStateError,
+        );
+      });
+
+      test('throws when index out of range', () {
+        expect(
+          () => pagingController.insertItem(
+            id: 'out',
+            item: 'Item',
+            index: 1,
+          ),
+          throwsRangeError,
+        );
       });
     });
   });

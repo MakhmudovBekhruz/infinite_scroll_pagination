@@ -11,6 +11,7 @@ class _ExampleScreenState extends State<ExampleScreen> {
   late final _pagingController = PagingController<int, Photo>(
     getNextPageKey: (state) => state.lastPageIsEmpty ? null : state.nextIntPageKey,
     fetchPage: (pageKey) => RemoteApi.getPhotos(pageKey),
+    getItemId: (photo) => photo.id.toString(),
   );
 
   @override
@@ -268,6 +269,7 @@ class _ExampleScreenState extends State<ExampleScreen> {
           ? results
           : results.where((photo) => photo.title.contains(_searchTerm!)).toList();
     },
+    getItemId: (photo) => photo.id.toString(),
   );
 
   void _updateSearchTerm(String searchTerm) {

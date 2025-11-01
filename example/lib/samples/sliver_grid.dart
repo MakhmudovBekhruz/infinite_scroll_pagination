@@ -31,6 +31,7 @@ class _SliverGridScreenState extends State<SliverGridScreen> {
             page,
             search: search,
           ),
+          getItemId: (photo) => photo.id.toString(),
         ),
         child: BlocBuilder<PagingBloc<Photo>, BlocPagingState<Photo>>(
             builder: (context, state) {

@@ -13,6 +13,7 @@ base class PagingStateBase<PageKeyType, ItemType>
   /// Ensures that [pages] and [keys] are unmodifiable lists.
   PagingStateBase({
     List<List<ItemType>>? pages,
+    List<List<String>>? itemIds,
     List<PageKeyType>? keys,
     this.error,
     this.hasNextPage = true,
@@ -21,9 +22,17 @@ base class PagingStateBase<PageKeyType, ItemType>
           pages?.length == keys?.length,
           'The length of pages and keys must be equal.',
         ),
+        assert(
+          pages?.length == itemIds?.length,
+          'The length of pages and itemIds must be equal.',
+        ),
         pages = switch (pages) {
           null => null,
           _ => List.unmodifiable(pages.map<List<ItemType>>(List.unmodifiable)),
+        },
+        itemIds = switch (itemIds) {
+          null => null,
+          _ => List.unmodifiable(itemIds.map<List<String>>(List.unmodifiable)),
         },
         keys = switch (keys) {
           null => null,
@@ -32,6 +41,9 @@ base class PagingStateBase<PageKeyType, ItemType>
 
   @override
   final List<List<ItemType>>? pages;
+
+  @override
+  final List<List<String>>? itemIds;
 
   @override
   final List<PageKeyType>? keys;
@@ -48,6 +60,7 @@ base class PagingStateBase<PageKeyType, ItemType>
   @override
   PagingState<PageKeyType, ItemType> copyWith({
     Defaulted<List<List<ItemType>>?>? pages = const Omit(),
+    Defaulted<List<List<String>>?>? itemIds = const Omit(),
     Defaulted<List<PageKeyType>?>? keys = const Omit(),
     Defaulted<Object?>? error = const Omit(),
     Defaulted<bool>? hasNextPage = const Omit(),
@@ -55,6 +68,8 @@ base class PagingStateBase<PageKeyType, ItemType>
   }) =>
       PagingStateBase(
         pages: pages is Omit ? this.pages : pages as List<List<ItemType>>?,
+        itemIds:
+            itemIds is Omit ? this.itemIds : itemIds as List<List<String>>?,
         keys: keys is Omit ? this.keys : keys as List<PageKeyType>?,
         error: error is Omit ? this.error : error as Object?,
         hasNextPage:
@@ -65,6 +80,7 @@ base class PagingStateBase<PageKeyType, ItemType>
   @override
   PagingState<PageKeyType, ItemType> reset() => PagingStateBase(
         pages: null,
+        itemIds: null,
         keys: null,
         error: null,
         hasNextPage: true,
@@ -73,8 +89,8 @@ base class PagingStateBase<PageKeyType, ItemType>
 
   @override
   String toString() => '${objectRuntimeType(this, 'PagingStateBase')}'
-      '(pages: $pages, keys: $keys, error: $error, hasNextPage: $hasNextPage, '
-      'isLoading: $isLoading)';
+      '(pages: $pages, itemIds: $itemIds, keys: $keys, error: $error, '
+      'hasNextPage: $hasNextPage, isLoading: $isLoading)';
 
   static const _equality = DeepCollectionEquality();
 
@@ -83,6 +99,7 @@ base class PagingStateBase<PageKeyType, ItemType>
     return identical(this, other) ||
         (other is PagingState<PageKeyType, ItemType> &&
             _equality.equals(other.pages, pages) &&
+            _equality.equals(other.itemIds, itemIds) &&
             _equality.equals(other.keys, keys) &&
             other.error == error &&
             other.hasNextPage == hasNextPage &&
@@ -92,6 +109,7 @@ base class PagingStateBase<PageKeyType, ItemType>
   @override
   int get hashCode => Object.hash(
         _equality.hash(pages),
+        _equality.hash(itemIds),
         _equality.hash(keys),
         error,
         hasNextPage,

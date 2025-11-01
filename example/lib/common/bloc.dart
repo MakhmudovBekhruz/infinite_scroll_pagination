@@ -27,6 +27,7 @@ final class BlocPagingState<T> extends PagingStateBase<int, T> {
   /// and a [cancelToken] to manage cancellation of ongoing fetch operations.
   BlocPagingState({
     super.pages,
+    super.itemIds,
     super.keys,
     super.error,
     super.hasNextPage,
@@ -42,6 +43,7 @@ final class BlocPagingState<T> extends PagingStateBase<int, T> {
   @override
   BlocPagingState<T> copyWith({
     Defaulted<List<List<T>>?>? pages = const Omit(),
+    Defaulted<List<List<String>>?>? itemIds = const Omit(),
     Defaulted<List<int>?>? keys = const Omit(),
     Defaulted<Object?>? error = const Omit(),
     Defaulted<bool>? hasNextPage = const Omit(),
@@ -51,6 +53,8 @@ final class BlocPagingState<T> extends PagingStateBase<int, T> {
   }) =>
       BlocPagingState<T>(
         pages: pages is Omit ? this.pages : pages as List<List<T>>?,
+        itemIds:
+            itemIds is Omit ? this.itemIds : itemIds as List<List<String>>?,
         keys: keys is Omit ? this.keys : keys as List<int>?,
         error: error is Omit ? this.error : error,
         hasNextPage:
@@ -65,6 +69,7 @@ final class BlocPagingState<T> extends PagingStateBase<int, T> {
   @override
   BlocPagingState<T> reset() => BlocPagingState<T>(
         pages: null,
+        itemIds: null,
         keys: null,
         error: null,
         hasNextPage: true,
@@ -112,6 +117,7 @@ class BlocCancelToken {
 class PagingBloc<T> extends Bloc<PagingEvent, BlocPagingState<T>> {
   PagingBloc({
     required this.fetchFn,
+    required this.getItemId,
   }) : super(BlocPagingState<T>()) {
     on<PagingFetchNext>(_onFetchNext);
     on<PagingRefresh>(_onRefresh);
@@ -120,6 +126,7 @@ class PagingBloc<T> extends Bloc<PagingEvent, BlocPagingState<T>> {
   }
 
   final Future<List<T>> Function(int pageKey, String? search)? fetchFn;
+  final String Function(T item) getItemId;
 
   Future<void> _onFetchNext(
     PagingFetchNext event,
@@ -148,11 +155,13 @@ class PagingBloc<T> extends Bloc<PagingEvent, BlocPagingState<T>> {
       if (cancelToken.isCancelled) return;
 
       final isLastPage = result.isEmpty;
+      final newIds = result.map(getItemId).toList();
       emit(state.copyWith(
         isLoading: false,
         error: null,
         hasNextPage: !isLastPage,
         pages: [...?state.pages, result],
+        itemIds: [...?state.itemIds, newIds],
         keys: [...?state.keys, pageKey],
         cancelToken: null,
       ));
