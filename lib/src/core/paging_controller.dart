@@ -207,6 +207,99 @@ class PagingController<PageKeyType, ItemType>
     );
   }
 
+  /// Removes the item at the given [index] from the flattened items list.
+  ///
+  /// Throws a [RangeError] if [index] is outside the valid range.
+  void removeItemAt({
+    required int index,
+  }) {
+    final state = value;
+
+    final pages = state.pages?.map((page) => page.toList()).toList() ?? [];
+    final itemIdsPages =
+        state.itemIds?.map((page) => page.toList()).toList() ?? [];
+
+    while (itemIdsPages.length < pages.length) {
+      final pageIndex = itemIdsPages.length;
+      itemIdsPages.add(
+        pages[pageIndex].map(_getItemId).toList(),
+      );
+    }
+
+    final totalItems = pages.fold<int>(0, (count, page) => count + page.length);
+    if (index < 0 || index >= totalItems) {
+      throw RangeError.range(index, 0, totalItems == 0 ? 0 : totalItems - 1);
+    }
+
+    var offset = 0;
+    for (var pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+      final page = pages[pageIndex];
+      if (index < offset + page.length) {
+        final pageOffset = index - offset;
+        page.removeAt(pageOffset);
+        itemIdsPages[pageIndex].removeAt(pageOffset);
+
+        if (page.isEmpty) {
+          pages.removeAt(pageIndex);
+          itemIdsPages.removeAt(pageIndex);
+        }
+        break;
+      }
+      offset += page.length;
+    }
+
+    value = state.copyWith(
+      pages: pages,
+      itemIds: itemIdsPages,
+    );
+  }
+
+  /// Removes the item with the given [id] from the items list.
+  ///
+  /// Throws a [StateError] if no item with the provided [id] exists.
+  void removeItemById(String id) {
+    final state = value;
+
+    final pages = state.pages?.map((page) => page.toList()).toList() ?? [];
+    final itemIdsPages =
+        state.itemIds?.map((page) => page.toList()).toList() ?? [];
+
+    while (itemIdsPages.length < pages.length) {
+      final pageIndex = itemIdsPages.length;
+      itemIdsPages.add(
+        pages[pageIndex].map(_getItemId).toList(),
+      );
+    }
+
+    var removed = false;
+
+    for (var pageIndex = 0; pageIndex < itemIdsPages.length; pageIndex++) {
+      final ids = itemIdsPages[pageIndex];
+      final itemIndex = ids.indexOf(id);
+      if (itemIndex != -1) {
+        pages[pageIndex].removeAt(itemIndex);
+        ids.removeAt(itemIndex);
+
+        if (pages[pageIndex].isEmpty) {
+          pages.removeAt(pageIndex);
+          itemIdsPages.removeAt(pageIndex);
+        }
+
+        removed = true;
+        break;
+      }
+    }
+
+    if (!removed) {
+      throw StateError('Item id "$id" does not exist.');
+    }
+
+    value = state.copyWith(
+      pages: pages,
+      itemIds: itemIdsPages,
+    );
+  }
+
   void _validateNewIds(
     List<String> newIds,
     List<List<String>>? existingIds,
