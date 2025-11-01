@@ -22,6 +22,7 @@ extension TestPagingState on PagingState<int, String> {
 
   static PagingState<int, String> noItemsFound() => PagingState<int, String>(
         pages: const [[]],
+        itemIds: const [[]],
         keys: const [1],
         hasNextPage: false,
       );
@@ -29,6 +30,7 @@ extension TestPagingState on PagingState<int, String> {
   static PagingState<int, String> ongoing({int n = pageSize}) =>
       PagingState<int, String>(
         pages: [generateItems(n)],
+        itemIds: [generateItems(n)],
         keys: const [1],
         hasNextPage: true,
       );
@@ -36,6 +38,7 @@ extension TestPagingState on PagingState<int, String> {
   static PagingState<int, String> subsequentPageError({int n = pageSize}) =>
       PagingState<int, String>(
         pages: [generateItems(n)],
+        itemIds: [generateItems(n)],
         keys: const [1],
         error: TestException(),
         hasNextPage: true,
@@ -44,6 +47,7 @@ extension TestPagingState on PagingState<int, String> {
   static PagingState<int, String> completed({int n = pageSize}) =>
       PagingState<int, String>(
         pages: [generateItems(n)],
+        itemIds: [generateItems(n)],
         keys: const [1],
         hasNextPage: false,
       );

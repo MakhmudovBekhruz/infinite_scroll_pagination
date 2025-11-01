@@ -20,14 +20,19 @@ typedef FetchPageCallback<PageKeyType, ItemType> = FutureOr<List<ItemType>>
 /// Note that for convenience, fetch operations are not atomic.
 /// The state may be updated during a fetch operation. This should be done fully synchronously,
 /// as otherwise, the state may become desynchronized.
+///
+/// Each item managed by the controller must have a unique string identifier resolved by
+/// [getItemId]. The identifier is used to keep track of items and to support targeted updates.
 class PagingController<PageKeyType, ItemType>
     extends ValueNotifier<PagingState<PageKeyType, ItemType>> {
   PagingController({
     PagingState<PageKeyType, ItemType>? value,
     required NextPageKeyCallback<PageKeyType, ItemType> getNextPageKey,
     required FetchPageCallback<PageKeyType, ItemType> fetchPage,
+    required String Function(ItemType item) getItemId,
   })  : _getNextPageKey = getNextPageKey,
         _fetchPage = fetchPage,
+        _getItemId = getItemId,
         super(
           value ?? PagingState<PageKeyType, ItemType>(),
         );
@@ -38,6 +43,9 @@ class PagingController<PageKeyType, ItemType>
 
   /// The function to fetch a page.
   final FetchPageCallback<PageKeyType, ItemType> _fetchPage;
+
+  /// The function to resolve an item's unique identifier.
+  final String Function(ItemType item) _getItemId;
 
   /// Keeps track of the current operation.
   /// If the operation changes during its execution, the operation is cancelled.
@@ -88,12 +96,17 @@ class PagingController<PageKeyType, ItemType>
         newItems = fetchResult;
       }
 
+      final newItemIds = newItems.map(_getItemId).toList(growable: false);
+
       // Update our state in case it was modified during the fetch operation.
       // This beaks atomicity, but is necessary to allow users to modify the state during a fetch.
       state = value;
 
+      _validateNewIds(newItemIds, state.itemIds);
+
       state = state.copyWith(
         pages: [...?state.pages, newItems],
+        itemIds: [...?state.itemIds, newItemIds],
         keys: [...?state.keys, nextPageKey],
       );
     } catch (error) {
@@ -127,6 +140,90 @@ class PagingController<PageKeyType, ItemType>
   void cancel() {
     operation = null;
     value = value.copyWith(isLoading: false);
+  }
+
+  /// Inserts a new item into the flattened items list at [index].
+  ///
+  /// The provided [id] must be unique across all items currently managed by the controller.
+  /// Throws a [StateError] if the id already exists or a [RangeError] if [index]
+  /// is outside the valid range.
+  void insertItem({
+    required String id,
+    required ItemType item,
+    required int index,
+  }) {
+    final state = value;
+
+    final pages = state.pages?.map((page) => page.toList()).toList() ?? [];
+    final itemIdsPages =
+        state.itemIds?.map((page) => page.toList()).toList() ?? [];
+
+    while (itemIdsPages.length < pages.length) {
+      final pageIndex = itemIdsPages.length;
+      itemIdsPages.add(
+        pages[pageIndex].map(_getItemId).toList(),
+      );
+    }
+
+    final existingIds = itemIdsPages.expand((ids) => ids).toSet();
+    if (!existingIds.add(id)) {
+      throw StateError('Item id "$id" already exists.');
+    }
+
+    final totalItems = pages.fold<int>(0, (count, page) => count + page.length);
+    if (index < 0 || index > totalItems) {
+      throw RangeError.range(index, 0, totalItems);
+    }
+
+    if (pages.isEmpty) {
+      pages.add([item]);
+      itemIdsPages.add([id]);
+    } else {
+      var offset = 0;
+      var inserted = false;
+      for (var pageIndex = 0; pageIndex < pages.length; pageIndex++) {
+        final page = pages[pageIndex];
+        final ids = itemIdsPages[pageIndex];
+
+        if (index <= offset + page.length) {
+          final pageOffset = index - offset;
+          page.insert(pageOffset, item);
+          ids.insert(pageOffset, id);
+          inserted = true;
+          break;
+        }
+        offset += page.length;
+      }
+
+      if (!inserted) {
+        pages.last.add(item);
+        itemIdsPages.last.add(id);
+      }
+    }
+
+    value = state.copyWith(
+      pages: pages,
+      itemIds: itemIdsPages,
+    );
+  }
+
+  void _validateNewIds(
+    List<String> newIds,
+    List<List<String>>? existingIds,
+  ) {
+    final existing = existingIds == null
+        ? <String>{}
+        : existingIds.expand((ids) => ids).toSet();
+
+    final seen = <String>{};
+    for (final id in newIds) {
+      if (!seen.add(id)) {
+        throw StateError('Duplicate id "$id" detected in the same page.');
+      }
+      if (!existing.add(id)) {
+        throw StateError('Duplicate id "$id" detected across pages.');
+      }
+    }
   }
 
   @override

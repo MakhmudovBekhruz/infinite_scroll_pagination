@@ -42,6 +42,7 @@ class _ListViewScreenState extends State<ListViewScreen> {
   late final _pagingController = PagingController<int, Photo>(
     getNextPageKey: (state) => state.lastPageIsEmpty ? null : state.nextIntPageKey,
     fetchPage: (pageKey) => RemoteApi.getPhotos(pageKey),
+    getItemId: (photo) => photo.id.toString(),
   );
 
   @override

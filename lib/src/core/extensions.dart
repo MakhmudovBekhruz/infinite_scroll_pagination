@@ -10,6 +10,11 @@ extension PagingStateExtension<PageKeyType, ItemType>
   List<ItemType>? get items =>
       pages != null ? List.unmodifiable(pages!.expand((e) => e)) : null;
 
+  /// The list of item ids fetched so far. A flattened version of [itemIds].
+  List<String>? get allItemIds => itemIds != null
+      ? List.unmodifiable(itemIds!.expand((ids) => ids))
+      : null;
+
   /// Convenience method to update the items of the state by applying a mapper function to each item.
   ///
   /// The result of this method is a new [PagingState] with the same properties as the original state
@@ -60,6 +65,12 @@ extension PagingControllerExtension<PageKeyType, ItemType>
     on PagingController<PageKeyType, ItemType> {
   /// The pages fetched so far.
   List<List<ItemType>>? get pages => value.pages;
+
+  /// The ids fetched so far.
+  List<List<String>>? get itemIds => value.itemIds;
+
+  /// The item ids fetched so far. A flattened version of [itemIds].
+  List<String>? get allItemIds => value.allItemIds;
 
   /// The items fetched so far. A flattened version of [pages].
   List<ItemType>? get items => value.items;

@@ -8,6 +8,7 @@ void main() {
       final state = PagingStateBase<int, String>();
 
       expect(state.pages, isNull);
+      expect(state.itemIds, isNull);
       expect(state.keys, isNull);
       expect(state.error, isNull);
       expect(state.hasNextPage, isTrue);
@@ -19,6 +20,9 @@ void main() {
         pages: [
           ['Item 1']
         ],
+        itemIds: [
+          ['id-1']
+        ],
         keys: [1],
         error: 'Error message',
         hasNextPage: false,
@@ -27,6 +31,9 @@ void main() {
 
       expect(state.pages, [
         ['Item 1']
+      ]);
+      expect(state.itemIds, [
+        ['id-1']
       ]);
       expect(state.keys, [1]);
       expect(state.error, 'Error message');
@@ -38,6 +45,9 @@ void main() {
       final state = PagingStateBase<int, String>(
         pages: [
           ['Item 1']
+        ],
+        itemIds: [
+          ['id-1']
         ],
         keys: [1],
       );
@@ -52,6 +62,9 @@ void main() {
         pages: [
           ['Item 1']
         ],
+        itemIds: [
+          ['id-1']
+        ],
         keys: [1],
         hasNextPage: false,
         isLoading: true,
@@ -61,11 +74,17 @@ void main() {
         pages: [
           ['Item 2']
         ],
+        itemIds: [
+          ['id-2']
+        ],
         hasNextPage: true,
       );
 
       expect(newState.pages, [
         ['Item 2']
+      ]);
+      expect(newState.itemIds, [
+        ['id-2']
       ]);
       expect(newState.keys, [1]);
       expect(newState.hasNextPage, isTrue);
@@ -77,6 +96,9 @@ void main() {
         pages: [
           ['Item 1']
         ],
+        itemIds: [
+          ['id-1']
+        ],
         keys: [1],
         error: 'Initial error',
         hasNextPage: false,
@@ -85,6 +107,7 @@ void main() {
 
       final newState = state.copyWith(
         pages: const Omit(),
+        itemIds: const Omit(),
         keys: const Omit(),
         error: const Omit(),
         hasNextPage: const Omit(),
@@ -92,6 +115,7 @@ void main() {
       );
 
       expect(newState.pages, state.pages);
+      expect(newState.itemIds, state.itemIds);
       expect(newState.keys, state.keys);
       expect(newState.error, state.error);
       expect(newState.hasNextPage, state.hasNextPage);
@@ -103,6 +127,9 @@ void main() {
         pages: [
           ['Item 1']
         ],
+        itemIds: [
+          ['id-1']
+        ],
         keys: [1],
         error: 'Error message',
         hasNextPage: false,
@@ -112,6 +139,7 @@ void main() {
       final resetState = state.reset();
 
       expect(resetState.pages, isNull);
+      expect(resetState.itemIds, isNull);
       expect(resetState.keys, isNull);
       expect(resetState.error, isNull);
       expect(resetState.hasNextPage, isTrue);
@@ -123,6 +151,9 @@ void main() {
         pages: [
           ['Item 1']
         ],
+        itemIds: [
+          ['id-1']
+        ],
         keys: [1],
         error: 'Error message',
         hasNextPage: false,
@@ -132,6 +163,10 @@ void main() {
       expect(
         state.toString(),
         contains('pages: [[Item 1]]'),
+      );
+      expect(
+        state.toString(),
+        contains('itemIds: [[id-1]]'),
       );
       expect(
         state.toString(),
@@ -156,6 +191,9 @@ void main() {
         pages: [
           ['Item 1']
         ],
+        itemIds: [
+          ['id-1']
+        ],
         keys: [1],
         error: 'Error message',
         hasNextPage: false,
@@ -166,6 +204,9 @@ void main() {
         pages: [
           ['Item 1']
         ],
+        itemIds: [
+          ['id-1']
+        ],
         keys: [1],
         error: 'Error message',
         hasNextPage: false,
@@ -175,6 +216,9 @@ void main() {
       final state3 = PagingStateBase<int, String>(
         pages: [
           ['Item 2']
+        ],
+        itemIds: [
+          ['id-2']
         ],
         keys: [2],
         error: 'Different error',
@@ -191,6 +235,9 @@ void main() {
         pages: [
           ['Item 1']
         ],
+        itemIds: [
+          ['id-1']
+        ],
         keys: [1],
         error: 'Error message',
         hasNextPage: false,
@@ -200,6 +247,9 @@ void main() {
       final state2 = PagingStateBase<int, String>(
         pages: [
           ['Item 1']
+        ],
+        itemIds: [
+          ['id-1']
         ],
         keys: [1],
         error: 'Error message',

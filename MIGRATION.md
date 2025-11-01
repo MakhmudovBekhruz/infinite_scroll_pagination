@@ -34,6 +34,7 @@ PagingController now directly takes and controls the fetching process:
 late final pagingController = PagingController<int, Photo>(
   getNextPageKey: (state) => state.lastPageIsEmpty ? null : state.nextIntPageKey,
   fetchPage: (pageKey) => fetchPage(pageKey),
+  getItemId: (photo) => photo.id.toString(),
 );
 ```
 
