@@ -18,6 +18,7 @@ base class PagingStateBase<PageKeyType, ItemType>
     this.error,
     this.hasNextPage = true,
     this.isLoading = false,
+    this.isSilentRefresh = false,
   })  : assert(
           pages?.length == keys?.length,
           'The length of pages and keys must be equal.',
@@ -58,6 +59,9 @@ base class PagingStateBase<PageKeyType, ItemType>
   final bool isLoading;
 
   @override
+  final bool isSilentRefresh;
+
+  @override
   PagingState<PageKeyType, ItemType> copyWith({
     Defaulted<List<List<ItemType>>?>? pages = const Omit(),
     Defaulted<List<List<String>>?>? itemIds = const Omit(),
@@ -65,6 +69,7 @@ base class PagingStateBase<PageKeyType, ItemType>
     Defaulted<Object?>? error = const Omit(),
     Defaulted<bool>? hasNextPage = const Omit(),
     Defaulted<bool>? isLoading = const Omit(),
+    Defaulted<bool>? isSilentRefresh = const Omit(),
   }) =>
       PagingStateBase(
         pages: pages is Omit ? this.pages : pages as List<List<ItemType>>?,
@@ -75,6 +80,9 @@ base class PagingStateBase<PageKeyType, ItemType>
         hasNextPage:
             hasNextPage is Omit ? this.hasNextPage : hasNextPage as bool,
         isLoading: isLoading is Omit ? this.isLoading : isLoading as bool,
+        isSilentRefresh: isSilentRefresh is Omit
+            ? this.isSilentRefresh
+            : isSilentRefresh as bool,
       );
 
   @override
@@ -85,12 +93,13 @@ base class PagingStateBase<PageKeyType, ItemType>
         error: null,
         hasNextPage: true,
         isLoading: false,
+        isSilentRefresh: false,
       );
 
   @override
   String toString() => '${objectRuntimeType(this, 'PagingStateBase')}'
       '(pages: $pages, itemIds: $itemIds, keys: $keys, error: $error, '
-      'hasNextPage: $hasNextPage, isLoading: $isLoading)';
+      'hasNextPage: $hasNextPage, isLoading: $isLoading, isSilentRefresh: $isSilentRefresh)';
 
   static const _equality = DeepCollectionEquality();
 
@@ -103,7 +112,8 @@ base class PagingStateBase<PageKeyType, ItemType>
             _equality.equals(other.keys, keys) &&
             other.error == error &&
             other.hasNextPage == hasNextPage &&
-            other.isLoading == isLoading);
+            other.isLoading == isLoading &&
+            other.isSilentRefresh == isSilentRefresh);
   }
 
   @override
@@ -114,5 +124,6 @@ base class PagingStateBase<PageKeyType, ItemType>
         error,
         hasNextPage,
         isLoading,
+        isSilentRefresh,
       );
 }

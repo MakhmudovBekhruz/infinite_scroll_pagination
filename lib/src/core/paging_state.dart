@@ -14,6 +14,7 @@ abstract class PagingState<PageKeyType, ItemType> {
     Object? error,
     bool hasNextPage,
     bool isLoading,
+    bool isSilentRefresh,
   }) = PagingStateBase<PageKeyType, ItemType>;
 
   /// The pages fetched so far.
@@ -45,6 +46,10 @@ abstract class PagingState<PageKeyType, ItemType> {
   /// Will be `true` if a page is currently being fetched.
   bool get isLoading;
 
+  /// Will be `true` if a refresh is in progress without showing loader UI.
+  /// This is used when refreshing data while keeping the previous data visible.
+  bool get isSilentRefresh;
+
   /// Creates a copy of this [PagingState] but with the given fields replaced by the new values.
   /// If a field is not provided, it will default to the current value.
   ///
@@ -59,6 +64,7 @@ abstract class PagingState<PageKeyType, ItemType> {
     Defaulted<Object?>? error = const Omit(),
     Defaulted<bool>? hasNextPage = const Omit(),
     Defaulted<bool>? isLoading = const Omit(),
+    Defaulted<bool>? isSilentRefresh = const Omit(),
   });
 
   /// Returns a copy this [PagingState] but

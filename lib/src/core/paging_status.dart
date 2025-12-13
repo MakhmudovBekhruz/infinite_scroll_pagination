@@ -22,7 +22,7 @@ extension PagingStatusExtension on PagingState {
 
   bool get _hasError => error != null;
 
-  bool get _isLoadingFirstPage => _itemCount == null && !_hasError;
+  bool get _isLoadingFirstPage => _itemCount == null && !_hasError && !isSilentRefresh;
 
   bool get _hasFirstPageError => !_hasItems && _hasError;
 
