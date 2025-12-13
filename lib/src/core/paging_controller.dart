@@ -117,7 +117,6 @@ class PagingController<PageKeyType, ItemType>
           itemIds: [newItemIds],
           keys: [nextPageKey],
           isSilentRefresh: false,
-          hasNextPage: true,
         );
       } else {
         // Append to existing data
@@ -138,9 +137,11 @@ class PagingController<PageKeyType, ItemType>
       }
     } finally {
       if (operation == this.operation) {
+        // Only reset isSilentRefresh if no error occurred
+        final shouldResetSilentRefresh = state.error == null;
         value = state.copyWith(
           isLoading: false,
-          isSilentRefresh: false,
+          isSilentRefresh: shouldResetSilentRefresh ? false : state.isSilentRefresh,
         );
         this.operation = null;
       }
