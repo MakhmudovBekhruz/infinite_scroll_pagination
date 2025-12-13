@@ -83,8 +83,8 @@ class PagingController<PageKeyType, ItemType>
 
       final nextPageKey = _getNextPageKey(state);
 
-      // We are at the end of the list (unless it's a silent refresh).
-      if (nextPageKey == null && !isSilentRefresh) {
+      // We are at the end of the list.
+      if (nextPageKey == null) {
         state = state.copyWith(hasNextPage: false);
         return;
       }
