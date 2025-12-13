@@ -226,6 +226,32 @@ RefreshIndicator(
 );
 ```
 
+### Silent Refresh (Without Loader UI)
+
+By default, calling `refresh()` clears all existing data and shows a loading indicator while fetching the first page. If you want to keep the existing data visible during the refresh (useful for pull-to-refresh scenarios), you can use the `withLoaderUI` parameter:
+
+```dart
+RefreshIndicator(
+  onRefresh: () => Future.sync(
+    () => refresh(withLoaderUI: false),
+  ),
+  child: PagedListView<int, Photo>(
+    state: state,
+    fetchNextPage: fetchNextPage,
+    builderDelegate: PagedChildBuilderDelegate(
+      itemBuilder: (context, item, index) => ImageListTile(item: item),
+    ),
+  ),
+);
+```
+
+When `withLoaderUI` is `false`:
+- Existing data remains visible during the refresh
+- No loading indicator is shown for the first page
+- Once new data is fetched, it replaces the existing data smoothly
+
+This provides a better user experience for pull-to-refresh interactions, as users can continue viewing the old data while new data is being loaded.
+
 ## Preceding/Following Items
 
 If you need to place some widgets before or after your list, and expect them to scroll along with the list items, such as a header, footer, search or filter bar, you should use our [Sliver](https://flutter.dev/docs/development/ui/advanced/slivers) widgets.

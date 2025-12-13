@@ -79,5 +79,32 @@ void main() {
       );
       expect(pagingState.status, PagingStatus.completed);
     });
+
+    test(
+        'returns ongoing status during silent refresh with existing items',
+        () {
+      pagingState = PagingState<int, String>(
+        pages: const [
+          ['Item 1']
+        ],
+        itemIds: const [
+          ['Item 1']
+        ],
+        keys: const [1],
+        isSilentRefresh: true,
+        hasNextPage: true,
+      );
+      expect(pagingState.status, PagingStatus.ongoing);
+    });
+
+    test(
+        'does not return loadingFirstPage status during silent refresh',
+        () {
+      pagingState = PagingState<int, String>(
+        isSilentRefresh: true,
+      );
+      // During silent refresh, even with no items, it should not be loadingFirstPage
+      expect(pagingState.status, isNot(PagingStatus.loadingFirstPage));
+    });
   });
 }

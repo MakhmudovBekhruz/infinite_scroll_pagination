@@ -184,6 +184,81 @@ void main() {
         expect(pagingController.value.error, isNull);
       });
 
+      test('resets state with withLoaderUI: true', () async {
+        pagingController.value = PagingState<int, String>(
+          pages: const [
+            ['Item 1']
+          ],
+          itemIds: const [
+            ['Item 1']
+          ],
+          keys: const [1],
+        );
+
+        pagingController.refresh(withLoaderUI: true);
+
+        expect(pagingController.value.pages, isNull);
+        expect(pagingController.value.itemIds, isNull);
+        expect(pagingController.value.keys, isNull);
+        expect(pagingController.value.isLoading, isFalse);
+        expect(pagingController.value.error, isNull);
+        expect(pagingController.value.isSilentRefresh, isFalse);
+      });
+
+      test('preserves data with withLoaderUI: false', () async {
+        final initialPages = const [
+          ['Item 1', 'Item 2']
+        ];
+        final initialItemIds = const [
+          ['Item 1', 'Item 2']
+        ];
+        final initialKeys = const [1];
+
+        pagingController.value = PagingState<int, String>(
+          pages: initialPages,
+          itemIds: initialItemIds,
+          keys: initialKeys,
+        );
+
+        pagingController.refresh(withLoaderUI: false);
+
+        expect(pagingController.value.pages, initialPages);
+        expect(pagingController.value.itemIds, initialItemIds);
+        expect(pagingController.value.keys, initialKeys);
+        expect(pagingController.value.isLoading, isFalse);
+        expect(pagingController.value.error, isNull);
+        expect(pagingController.value.isSilentRefresh, isTrue);
+      });
+
+      test('replaces data after silent refresh completes', () async {
+        final oldItems = ['Old Item 1', 'Old Item 2'];
+        final newItems = ['New Item 1', 'New Item 2'];
+
+        pagingController.value = PagingState<int, String>(
+          pages: [oldItems],
+          itemIds: [oldItems],
+          keys: const [1],
+        );
+
+        // Override fetchedItems for this test
+        fetchedItems = newItems;
+
+        pagingController.refresh(withLoaderUI: false);
+
+        expect(pagingController.value.pages, [oldItems]);
+        expect(pagingController.value.isSilentRefresh, isTrue);
+
+        pagingController.fetchNextPage();
+
+        await Future.value(null);
+
+        expect(pagingController.value.pages, [newItems]);
+        expect(pagingController.value.itemIds, [newItems]);
+        expect(pagingController.value.keys, [1]);
+        expect(pagingController.value.isSilentRefresh, isFalse);
+        expect(pagingController.value.isLoading, isFalse);
+      });
+
       test('cancels previous refresh', () async {
         bool hasBeenCalled = false;
         bool hasFailed = false;

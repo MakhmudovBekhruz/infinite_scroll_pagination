@@ -79,7 +79,7 @@ class _ListViewScreenState extends State<ListViewScreen> {
           onSearch: _updateSearchTerm,
         ),
         body: RefreshIndicator(
-          onRefresh: () async => _pagingController.refresh(),
+          onRefresh: () async => _pagingController.refresh(withLoaderUI: false),
 
           /// The [PagingListener] is a widget that listens to the controller and
           /// rebuilds the UI based on the state of the controller.

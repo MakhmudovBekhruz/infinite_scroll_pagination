@@ -75,13 +75,16 @@ class PagingController<PageKeyType, ItemType>
     PagingState<PageKeyType, ItemType> state = value;
 
     try {
-      // There are no more pages to load.
-      if (!state.hasNextPage) return;
+      // Check if this is a silent refresh
+      final isSilentRefresh = state.isSilentRefresh;
+
+      // There are no more pages to load (unless it's a silent refresh).
+      if (!state.hasNextPage && !isSilentRefresh) return;
 
       final nextPageKey = _getNextPageKey(state);
 
-      // We are at the end of the list.
-      if (nextPageKey == null) {
+      // We are at the end of the list (unless it's a silent refresh).
+      if (nextPageKey == null && !isSilentRefresh) {
         state = state.copyWith(hasNextPage: false);
         return;
       }
@@ -102,13 +105,27 @@ class PagingController<PageKeyType, ItemType>
       // This beaks atomicity, but is necessary to allow users to modify the state during a fetch.
       state = value;
 
-      _validateNewIds(newItemIds, state.itemIds);
+      // For silent refresh, we don't validate against existing IDs since we're replacing them
+      if (!isSilentRefresh) {
+        _validateNewIds(newItemIds, state.itemIds);
+      }
 
-      state = state.copyWith(
-        pages: [...?state.pages, newItems],
-        itemIds: [...?state.itemIds, newItemIds],
-        keys: [...?state.keys, nextPageKey],
-      );
+      if (isSilentRefresh) {
+        // Replace all data with the new first page
+        state = state.copyWith(
+          pages: [newItems],
+          itemIds: [newItemIds],
+          keys: [nextPageKey],
+          isSilentRefresh: false,
+        );
+      } else {
+        // Append to existing data
+        state = state.copyWith(
+          pages: [...?state.pages, newItems],
+          itemIds: [...?state.itemIds, newItemIds],
+          keys: [...?state.keys, nextPageKey],
+        );
+      }
     } catch (error) {
       state = state.copyWith(error: error);
 
@@ -120,7 +137,12 @@ class PagingController<PageKeyType, ItemType>
       }
     } finally {
       if (operation == this.operation) {
-        value = state.copyWith(isLoading: false);
+        // Only reset isSilentRefresh if no error occurred
+        final shouldResetSilentRefresh = state.error == null;
+        value = state.copyWith(
+          isLoading: false,
+          isSilentRefresh: shouldResetSilentRefresh ? false : state.isSilentRefresh,
+        );
         this.operation = null;
       }
     }
@@ -129,9 +151,22 @@ class PagingController<PageKeyType, ItemType>
   /// Restarts the pagination process.
   ///
   /// This cancels the current fetch operation and resets the state.
-  void refresh() {
+  ///
+  /// If [withLoaderUI] is true (default), the first page loader will be shown
+  /// and all existing data will be cleared immediately.
+  /// If [withLoaderUI] is false, the existing data will remain visible
+  /// while new data is being fetched, and will be replaced once the new data arrives.
+  void refresh({bool withLoaderUI = true}) {
     operation = null;
-    value = value.reset();
+    if (withLoaderUI) {
+      value = value.reset();
+    } else {
+      // Silent refresh: keep existing data visible, mark for silent refresh
+      value = value.copyWith(
+        isSilentRefresh: true,
+        error: null,
+      );
+    }
   }
 
   /// Cancels the current fetch operation.
