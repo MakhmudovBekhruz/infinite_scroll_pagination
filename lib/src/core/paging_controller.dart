@@ -166,6 +166,8 @@ class PagingController<PageKeyType, ItemType>
         isSilentRefresh: true,
         error: null,
       );
+      // Automatically trigger the fetch for silent refresh
+      fetchNextPage();
     }
   }
 
