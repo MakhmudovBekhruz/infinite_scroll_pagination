@@ -166,6 +166,9 @@ class PagingController<PageKeyType, ItemType>
         isSilentRefresh: true,
         error: null,
       );
+      // Automatically trigger the fetch for silent refresh.
+      // This runs asynchronously and manages its own state.
+      fetchNextPage();
     }
   }
 
