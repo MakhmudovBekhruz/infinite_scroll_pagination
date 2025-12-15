@@ -164,6 +164,7 @@ class PagingController<PageKeyType, ItemType>
       // Silent refresh: keep existing data visible, mark for silent refresh
       value = value.copyWith(
         isSilentRefresh: true,
+        hasNextPage: true,
         error: null,
       );
       // Automatically trigger the fetch for silent refresh.

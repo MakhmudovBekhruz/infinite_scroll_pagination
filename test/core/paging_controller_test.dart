@@ -259,6 +259,62 @@ void main() {
         expect(pagingController.value.isLoading, isFalse);
       });
 
+      test('sets hasNextPage to true during silent refresh', () async {
+        // Setup: Create a state where hasNextPage is false
+        pagingController.value = PagingState<int, String>(
+          pages: const [
+            ['Item 1', 'Item 2']
+          ],
+          itemIds: const [
+            ['Item 1', 'Item 2']
+          ],
+          keys: const [1],
+          hasNextPage: false, // Explicitly set to false
+        );
+
+        // Act: Call refresh with withLoaderUI: false
+        pagingController.refresh(withLoaderUI: false);
+
+        // Assert: hasNextPage should be set to true immediately
+        expect(pagingController.value.hasNextPage, isTrue,
+            reason: 'hasNextPage should be true after calling refresh(withLoaderUI: false)');
+        expect(pagingController.value.isSilentRefresh, isTrue);
+      });
+
+      test('triggers fetchPage during silent refresh even when hasNextPage is false', () async {
+        // Setup: Create a state where hasNextPage is false
+        pagingController.value = PagingState<int, String>(
+          pages: const [
+            ['Item 1', 'Item 2']
+          ],
+          itemIds: const [
+            ['Item 1', 'Item 2']
+          ],
+          keys: const [1],
+          hasNextPage: false, // Explicitly set to false
+        );
+
+        // Reset fetchCalled to track if fetchPage is called
+        fetchCalled = false;
+        final newItems = ['New Item 1', 'New Item 2'];
+        fetchedItems = newItems;
+
+        // Act: Call refresh with withLoaderUI: false
+        pagingController.refresh(withLoaderUI: false);
+
+        // Wait for async operations
+        await Future.value(null);
+
+        // Assert: fetchPage should have been called
+        expect(fetchCalled, isTrue, reason: 'fetchPage should be called during silent refresh even when hasNextPage was false');
+        
+        // Assert: The state should be updated correctly
+        expect(pagingController.value.pages, [newItems]);
+        expect(pagingController.value.itemIds, [newItems]);
+        expect(pagingController.value.isSilentRefresh, isFalse);
+        expect(pagingController.value.isLoading, isFalse);
+      });
+
       test('cancels previous refresh', () async {
         bool hasBeenCalled = false;
         bool hasFailed = false;
