@@ -315,6 +315,61 @@ void main() {
         expect(pagingController.value.isLoading, isFalse);
       });
 
+      test('silent refresh restarts from page 1 instead of continuing from last page', () async {
+        // This test validates the fix for the issue where refresh(withLoaderUI: false)
+        // would continue from the last page instead of restarting from page 1.
+        
+        int? requestedPageKey;
+        
+        // Setup a controller that tracks which page was requested
+        pagingController = PagingController<int, String>(
+          getNextPageKey: (state) {
+            // Typical pagination logic: if no keys, start at 1; otherwise, next page
+            if (state.keys == null || state.keys!.isEmpty) {
+              return 1;
+            }
+            return state.keys!.last + 1;
+          },
+          fetchPage: (pageKey) {
+            requestedPageKey = pageKey;
+            return ['Item ${pageKey}A', 'Item ${pageKey}B'];
+          },
+          getItemId: (item) => item,
+        );
+
+        // Load pages 1, 2, 3
+        pagingController.fetchNextPage();
+        await Future.value(null);
+        expect(requestedPageKey, 1);
+
+        pagingController.fetchNextPage();
+        await Future.value(null);
+        expect(requestedPageKey, 2);
+
+        pagingController.fetchNextPage();
+        await Future.value(null);
+        expect(requestedPageKey, 3);
+
+        // Verify we have 3 pages loaded
+        expect(pagingController.value.pages?.length, 3);
+        expect(pagingController.value.keys, [1, 2, 3]);
+
+        // Now call silent refresh
+        pagingController.refresh(withLoaderUI: false);
+
+        // Wait for the refresh to complete
+        await Future.value(null);
+
+        // The fix ensures that page 1 is fetched (not page 4)
+        expect(requestedPageKey, 1, 
+            reason: 'Silent refresh should fetch page 1, not continue from page 4');
+
+        // After silent refresh, we should have only 1 page (the new page 1)
+        expect(pagingController.value.pages?.length, 1);
+        expect(pagingController.value.keys, [1]);
+        expect(pagingController.value.pages?[0], ['Item 1A', 'Item 1B']);
+      });
+
       test('cancels previous refresh', () async {
         bool hasBeenCalled = false;
         bool hasFailed = false;
