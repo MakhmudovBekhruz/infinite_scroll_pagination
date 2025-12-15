@@ -9,8 +9,15 @@ void main() {
     test(
         'returns loadingFirstPage status when loading first page with no items and no error',
         () {
-      pagingState = PagingState<int, String>();
+      pagingState = PagingState<int, String>(isLoading: true);
       expect(pagingState.status, PagingStatus.loadingFirstPage);
+    });
+
+    test(
+        'does not return loadingFirstPage status when not actively loading even with no items',
+        () {
+      pagingState = PagingState<int, String>(isLoading: false);
+      expect(pagingState.status, isNot(PagingStatus.loadingFirstPage));
     });
 
     test(

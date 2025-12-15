@@ -15,7 +15,7 @@ List<String> generateItems(int count) =>
 
 extension TestPagingState on PagingState<int, String> {
   static PagingState<int, String> loadingFirstPage() =>
-      PagingState<int, String>();
+      PagingState<int, String>(isLoading: true);
 
   static PagingState<int, String> firstPageError() =>
       PagingState<int, String>(error: TestException());
