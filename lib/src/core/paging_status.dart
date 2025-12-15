@@ -22,6 +22,12 @@ extension PagingStatusExtension on PagingState {
 
   bool get _hasError => error != null;
 
+  /// Returns true when actively loading the first page.
+  /// Requires all of:
+  /// - No items loaded yet (_itemCount == null)
+  /// - No error has occurred
+  /// - Not a silent refresh (which keeps existing data visible)
+  /// - Currently loading (isLoading == true)
   bool get _isLoadingFirstPage => _itemCount == null && !_hasError && !isSilentRefresh && isLoading;
 
   bool get _hasFirstPageError => !_hasItems && _hasError;
