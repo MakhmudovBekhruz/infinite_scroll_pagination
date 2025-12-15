@@ -324,7 +324,8 @@ void main() {
         // Setup a controller that tracks which page was requested
         pagingController = PagingController<int, String>(
           getNextPageKey: (state) {
-            // Typical pagination logic: if no keys, start at 1; otherwise, next page
+            // Typical pagination logic pattern used in tests:
+            // if no keys, start at 1; otherwise, next page.
             if (state.keys == null || state.keys!.isEmpty) {
               return 1;
             }
@@ -371,7 +372,7 @@ void main() {
       });
 
       test('silent refresh works with nextIntPageKey extension', () async {
-        // This test validates the fix works with the convenience extension
+        // This test validates the fix works with the convenience extension.
         
         int? requestedPageKey;
         
