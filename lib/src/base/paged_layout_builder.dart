@@ -160,7 +160,8 @@ class _PagedLayoutBuilderState<PageKeyType, ItemType>
   @override
   void initState() {
     super.initState();
-    if (_state.status == PagingStatus.loadingFirstPage) {
+    // Trigger initial load if no items exist yet and no error occurred
+    if (_state.items == null && _state.error == null) {
       _fetchNextPage();
     }
   }
@@ -169,7 +170,9 @@ class _PagedLayoutBuilderState<PageKeyType, ItemType>
   void didUpdateWidget(
       covariant PagedLayoutBuilder<PageKeyType, ItemType> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.state != widget.state) {
+    // Only react to actual state changes, not instance changes.
+    // Also check that the status has actually changed to avoid unnecessary fetches.
+    if (oldWidget.state != widget.state && oldWidget.state.status != widget.state.status) {
       if (_state.status == PagingStatus.loadingFirstPage) {
         _fetchNextPage();
       } else if (_state.status == PagingStatus.ongoing) {

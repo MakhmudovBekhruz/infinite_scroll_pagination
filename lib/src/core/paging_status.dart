@@ -44,6 +44,11 @@ extension PagingStatusExtension on PagingState {
     if (_isOngoing) return PagingStatus.ongoing;
     if (_hasSubsequentPageError) return PagingStatus.subsequentPageError;
     if (_isCompleted) return PagingStatus.completed;
+    // Fallback for initial state before loading starts
+    // This handles the case where pages are null but isLoading is false
+    if (_itemCount == null && !_hasError) {
+      return PagingStatus.loadingFirstPage;
+    }
     // This can never happen under normal circumstances.
     // coverage:ignore-start
     throw StateError('Unknown status; Did you forget to implement a case?');
