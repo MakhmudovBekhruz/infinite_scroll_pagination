@@ -7,9 +7,16 @@ void main() {
     late PagingState<int, String> pagingState;
 
     test(
-        'returns loadingFirstPage status when loading first page with no items and no error',
+        'returns loadingFirstPage status when actively loading first page with no items and no error',
         () {
-      pagingState = PagingState<int, String>();
+      pagingState = PagingState<int, String>(isLoading: true);
+      expect(pagingState.status, PagingStatus.loadingFirstPage);
+    });
+
+    test(
+        'returns loadingFirstPage status for initial state (before loading starts)',
+        () {
+      pagingState = PagingState<int, String>(isLoading: false);
       expect(pagingState.status, PagingStatus.loadingFirstPage);
     });
 

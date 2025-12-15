@@ -22,7 +22,13 @@ extension PagingStatusExtension on PagingState {
 
   bool get _hasError => error != null;
 
-  bool get _isLoadingFirstPage => _itemCount == null && !_hasError && !isSilentRefresh;
+  /// Returns true when actively loading the first page.
+  /// Requires all of:
+  /// - No items loaded yet (_itemCount == null)
+  /// - No error has occurred
+  /// - Not a silent refresh (which keeps existing data visible)
+  /// - Currently loading (isLoading == true)
+  bool get _isLoadingFirstPage => _itemCount == null && !_hasError && !isSilentRefresh && isLoading;
 
   bool get _hasFirstPageError => !_hasItems && _hasError;
 
@@ -44,6 +50,11 @@ extension PagingStatusExtension on PagingState {
     if (_isOngoing) return PagingStatus.ongoing;
     if (_hasSubsequentPageError) return PagingStatus.subsequentPageError;
     if (_isCompleted) return PagingStatus.completed;
+    // Fallback for initial state before loading starts
+    // This handles the case where pages are null but isLoading is false
+    if (_itemCount == null && !_hasError && !isSilentRefresh) {
+      return PagingStatus.loadingFirstPage;
+    }
     // This can never happen under normal circumstances.
     // coverage:ignore-start
     throw StateError('Unknown status; Did you forget to implement a case?');
