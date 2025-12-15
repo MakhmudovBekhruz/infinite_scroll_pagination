@@ -170,9 +170,8 @@ class _PagedLayoutBuilderState<PageKeyType, ItemType>
   void didUpdateWidget(
       covariant PagedLayoutBuilder<PageKeyType, ItemType> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Only react to actual state changes, not instance changes.
-    // Also check that the status has actually changed to avoid unnecessary fetches.
-    if (oldWidget.state != widget.state && oldWidget.state.status != widget.state.status) {
+    // Only react when the status actually changes to avoid unnecessary fetches during rebuilds.
+    if (oldWidget.state.status != widget.state.status) {
       if (_state.status == PagingStatus.loadingFirstPage) {
         _fetchNextPage();
       } else if (_state.status == PagingStatus.ongoing) {
