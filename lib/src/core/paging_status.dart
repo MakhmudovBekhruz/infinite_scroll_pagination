@@ -50,8 +50,9 @@ extension PagingStatusExtension on PagingState {
     if (_isOngoing) return PagingStatus.ongoing;
     if (_hasSubsequentPageError) return PagingStatus.subsequentPageError;
     if (_isCompleted) return PagingStatus.completed;
-    // Edge case: silent refresh with no items yet (shouldn't normally happen,
-    // but handle it gracefully by treating as noItemsFound rather than throwing)
+    // Edge case: silent refresh with no items yet.
+    // This can occur if refresh(withLoaderUI: false) is called before any items are loaded.
+    // We treat this as noItemsFound rather than throwing, to gracefully handle the state.
     if (isSilentRefresh && _itemCount == null) {
       return PagingStatus.noItemsFound;
     }

@@ -117,7 +117,7 @@ void main() {
     test(
         'does not return loadingFirstPage when data exists but isLoading is false (rebuild scenario)',
         () {
-      // Simulates a rebuild where state temporarily has null pages but isLoading is false
+      // Simulates a rebuild where data exists and isLoading is false
       // This should NOT trigger loadingFirstPage status
       pagingState = PagingState<int, String>(
         pages: const [
