@@ -81,7 +81,10 @@ class PagingController<PageKeyType, ItemType>
       // There are no more pages to load (unless it's a silent refresh).
       if (!state.hasNextPage && !isSilentRefresh) return;
 
-      final nextPageKey = _getNextPageKey(state);
+      // For silent refresh, calculate next page key as if starting fresh
+      final nextPageKey = isSilentRefresh
+          ? _getNextPageKey(PagingState<PageKeyType, ItemType>())
+          : _getNextPageKey(state);
 
       // We are at the end of the list.
       if (nextPageKey == null) {
