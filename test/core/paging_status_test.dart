@@ -14,10 +14,10 @@ void main() {
     });
 
     test(
-        'returns loadingFirstPage status for initial state (before loading starts)',
+        'throws StateError for uninitialized state (no items, not loading, no error)',
         () {
       pagingState = PagingState<int, String>(isLoading: false);
-      expect(pagingState.status, PagingStatus.loadingFirstPage);
+      expect(() => pagingState.status, throwsStateError);
     });
 
     test(
@@ -111,6 +111,44 @@ void main() {
         isSilentRefresh: true,
       );
       // During silent refresh, even with no items, it should not be loadingFirstPage
+      expect(pagingState.status, isNot(PagingStatus.loadingFirstPage));
+    });
+
+    test(
+        'does not return loadingFirstPage when data exists but isLoading is false (rebuild scenario)',
+        () {
+      // Simulates a rebuild where data exists and isLoading is false
+      // This should NOT trigger loadingFirstPage status
+      pagingState = PagingState<int, String>(
+        pages: const [
+          ['Item 1']
+        ],
+        itemIds: const [
+          ['Item 1']
+        ],
+        keys: const [1],
+        hasNextPage: true,
+        isLoading: false,
+      );
+      expect(pagingState.status, PagingStatus.ongoing);
+      expect(pagingState.status, isNot(PagingStatus.loadingFirstPage));
+    });
+
+    test(
+        'returns ongoing status when data exists and loading more pages',
+        () {
+      pagingState = PagingState<int, String>(
+        pages: const [
+          ['Item 1']
+        ],
+        itemIds: const [
+          ['Item 1']
+        ],
+        keys: const [1],
+        hasNextPage: true,
+        isLoading: true,
+      );
+      expect(pagingState.status, PagingStatus.ongoing);
       expect(pagingState.status, isNot(PagingStatus.loadingFirstPage));
     });
   });

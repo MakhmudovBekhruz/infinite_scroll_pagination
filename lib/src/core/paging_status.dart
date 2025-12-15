@@ -50,10 +50,11 @@ extension PagingStatusExtension on PagingState {
     if (_isOngoing) return PagingStatus.ongoing;
     if (_hasSubsequentPageError) return PagingStatus.subsequentPageError;
     if (_isCompleted) return PagingStatus.completed;
-    // Fallback for initial state before loading starts
-    // This handles the case where pages are null but isLoading is false
-    if (_itemCount == null && !_hasError && !isSilentRefresh) {
-      return PagingStatus.loadingFirstPage;
+    // Edge case: silent refresh with no items yet.
+    // This can occur if refresh(withLoaderUI: false) is called before any items are loaded.
+    // We treat this as noItemsFound rather than throwing, to gracefully handle the state.
+    if (isSilentRefresh && _itemCount == null) {
+      return PagingStatus.noItemsFound;
     }
     // This can never happen under normal circumstances.
     // coverage:ignore-start
