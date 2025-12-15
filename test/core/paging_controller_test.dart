@@ -370,6 +370,49 @@ void main() {
         expect(pagingController.value.pages?[0], ['Item 1A', 'Item 1B']);
       });
 
+      test('silent refresh works with nextIntPageKey extension', () async {
+        // This test validates the fix works with the convenience extension
+        
+        int? requestedPageKey;
+        
+        // Setup a controller using the nextIntPageKey extension
+        pagingController = PagingController<int, String>(
+          getNextPageKey: (state) => state.lastPageIsEmpty ? null : state.nextIntPageKey,
+          fetchPage: (pageKey) {
+            requestedPageKey = pageKey;
+            return pageKey > 2 ? [] : ['Item ${pageKey}A', 'Item ${pageKey}B'];
+          },
+          getItemId: (item) => item,
+        );
+
+        // Load pages 1, 2 (page 3 would be empty)
+        pagingController.fetchNextPage();
+        await Future.value(null);
+        expect(requestedPageKey, 1);
+
+        pagingController.fetchNextPage();
+        await Future.value(null);
+        expect(requestedPageKey, 2);
+
+        // Verify we have 2 pages loaded
+        expect(pagingController.value.pages?.length, 2);
+        expect(pagingController.value.keys, [1, 2]);
+
+        // Now call silent refresh
+        pagingController.refresh(withLoaderUI: false);
+
+        // Wait for the refresh to complete
+        await Future.value(null);
+
+        // With the fix, nextIntPageKey on empty state returns (0) + 1 = 1
+        expect(requestedPageKey, 1, 
+            reason: 'Silent refresh with nextIntPageKey should fetch page 1');
+
+        // After silent refresh, we should have only 1 page (the new page 1)
+        expect(pagingController.value.pages?.length, 1);
+        expect(pagingController.value.keys, [1]);
+      });
+
       test('cancels previous refresh', () async {
         bool hasBeenCalled = false;
         bool hasFailed = false;
